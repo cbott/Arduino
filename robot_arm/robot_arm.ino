@@ -39,6 +39,7 @@ const int PRESSURE_PIN = 0;
 const int OPEN = 15;
 const int CLOSED = 170;
 
+//Motor declarations
 Servo base;
 Servo shoulder;
 Servo elbow;
@@ -51,15 +52,19 @@ void setup()
 {
   //If you ever want to
   // release the servo (allowing it to be turned by hand),
-  // you can call servo1.detach().
+  // you can call servo1.detach()
+  
+  //Set up digital outputs
   pinMode(indicLED, OUTPUT);
   pinMode(L_DRIVE_1, OUTPUT);
   pinMode(L_DRIVE_2, OUTPUT);
   pinMode(R_DRIVE_1, OUTPUT);
   pinMode(R_DRIVE_2, OUTPUT);
 
+  //seed random
   randomSeed(analogRead(0));
-
+  
+  //enable servos
   base.attach(BASE_PWM);
   shoulder.attach(SHOULDER_PWM);
   elbow.attach(ELBOW_PWM);
@@ -67,8 +72,10 @@ void setup()
   wrist_rotate.attach(W_ROTATE_PWM);
   wrist.attach(WRIST_PWM);
   
+  //begin serial transmission
   Serial.begin(9600);
   
+  //optional
   Home();
 }
 
@@ -76,10 +83,13 @@ void setup()
 void loop()
 {  
   digitalWrite(indicLED, HIGH);
-  rtnClose();
+  rtnPickPlace();
 }
+
 //////////////////////////////////////routines///////////////////////////////////////////
 void rtnFlyTrap(){
+  //stays still with gripper open. closes when the pressure sensor is touched
+  //mostly just a test of the sensor
   set(wrist,90,1);
   while (analogRead(PRESSURE_PIN)<6){
     int val = analogRead(PRESSURE_PIN);
@@ -92,21 +102,31 @@ void rtnFlyTrap(){
   delay(3000);
   set(gripper, OPEN, 0);
 }
+
 void rtnPickPlace(){
-   Home();
-   delay(2000);
-   set(base, 135, 1);
-   set(elbow, 20, 1);
-   set(wrist, 15, 2);
-   set(shoulder, 160, 1);
-   set(gripper, CLOSED, 0);
-   delay(100);
-   set(shoulder, 110, 1);
-   set(elbow, 30, 2);
-   set(base, 45, 1);
-   set(shoulder, 140, 1);
-   set(wrist, 90, 1);
-   set(gripper, OPEN, 0);
+  Home();
+  set(elbow, 20, 1);
+  set(wrist_rotate, 180, 1);
+  set(wrist, 30, 2);
+  set(shoulder, 160, 1);
+  set(gripper, CLOSED, 1);
+  while(has_object() == false){
+    set(gripper, OPEN, 1);
+    set(shoulder, 100, 1);
+    set(base, random(70, 120), 1);
+    set(shoulder, 160, 1);
+    set(gripper, CLOSED, 1);
+  }
+  Home();
+  drive(1,-1);
+  delay(4000);
+  drive(0,0);
+  set(wrist, 90, 1);
+  set(gripper, OPEN, 1);
+  Home();
+  drive(1,-1);
+  delay(4000);
+  drive(0,0); 
 }
 
 void rtnGive(){
@@ -295,10 +315,10 @@ void Home(){
   //set the robot to a resting position
   set(shoulder, 80, 1); 
   set(elbow, 100, 1);
-  set(base, 90, 1);
+  set(base, 100, 1);
   set(wrist, 10, 1);
   set(wrist_rotate, 90, 1);
-  set(gripper, OPEN, 1);
+  //set(gripper, OPEN, 1);
 }
 
 void close_gripper(){
