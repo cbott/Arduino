@@ -14,8 +14,8 @@ gripper - open = 10, closed = 180
 
 //Communication setup
 #define SLAVE_ADDRESS 0x04
-static const byte DATA_BITS = 6;//bits used as data (8-id bits)
-boolean commands[64];//make sure this is equal to 2**DATA_BITS
+static const byte DATA_BITS = 3;//bits used as data (8-id bits)
+boolean commands[32];//make sure this is equal to 2**(8 - DATA_BITS)
 
 int number;//value received over i2c
 int id = 0;    //first bits in number ( 11110000 )
@@ -94,6 +94,7 @@ void loop(){
   digitalWrite(indicLED, HIGH);
   
   commands[id] = data;
+  float spd = 1;
   
   //driving//
   if (commands[1]==1){//forward
@@ -108,20 +109,47 @@ void loop(){
     drive(0,0); 
   }
   //gripper//
-  float current_position = gripper.read();
-  float new_position = current_position;
-  float spd = 1;
-  //Serial.println(current_position);
-  if(commands[2]==1){
-    new_position -= spd;
+  if(commands[7]==1){
+    Move(gripper, -spd);
   }
-  if (commands[2]==2){
-    new_position += spd;
+  if (commands[7]==2){
+    Move(gripper, spd);
   }
-  //Serial.println(new_position);
+  //base//
+  if (commands[2]==1){
+    Move(base, spd);
+  }else if (commands[2]==2){
+    Move(base, -spd); 
+  }
+  //shoulder//
+  if (commands[3]==1){
+    Move(shoulder, -spd);  
+  }else if (commands[3]==2){
+    Move(shoulder, spd); 
+  }
+  //elbow//
+  if (commands[4]==1){
+    Move(elbow, -spd);  
+  }else if (commands[4]==2){
+    Move(elbow, spd); 
+  }
+  //wrist//
+  if (commands[5]==1){
+    Move(wrist, spd);  
+  }else if (commands[5]==2){
+    Move(wrist, -spd); 
+  }
+  //wrist rotation//
+  if (commands[6]==1){
+    Move(wrist_rotate, -spd);  
+  }else if (commands[6]==2){
+    Move(wrist_rotate, spd); 
+  }
+  //home position command
+  if (commands[8]==1){
+    Home(); 
+  }
   delay(10);
-  gripper.write(constrain(new_position, 0.0, 180.0));
-  
 }
 
 // callback for received data
@@ -182,6 +210,11 @@ void set(Servo motor, int new_position, int spd){
       delay(Delay);
     } 
   } 
+}
+///////////////////////////Move funciton. Moves a servo left or right////////////////////
+void Move(Servo motor, int val){
+  int current_position = motor.read();
+  motor.write(constrain(current_position + val, 0.0, 180.0));//limit write values to 0<val<180
 }
 ///////////////////////////Drive functions///////////////
 void drive(int left, int right){
