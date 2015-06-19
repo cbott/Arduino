@@ -34,7 +34,7 @@ const int WRIST_PWM = 9;
 const int W_ROTATE_PWM = 10;
 const int GRIPPER_PWM = 11;
 
-const int indicLED = 12;
+const int indicLED = 13;
 
 const int L_DRIVE_1 = 2;
 const int L_DRIVE_2 = 4;
