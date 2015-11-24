@@ -6,6 +6,7 @@ boolean prevBtnState;
 boolean btnState;
 unsigned long time;
 unsigned long prevtime;
+float spm;
 
 void setup() {
   for( int i = 0; i < 8; i++){
@@ -25,13 +26,13 @@ void loop() {
   
   if(btnState && !prevBtnState){
     float timeChange = (time - prevtime)/1000.0;
-    float spm = secTospm(timeChange);
-    Serial.println(spm);
-    dispNumber(spm, int(spm) != spm);
+    spm = secTospm(timeChange);
     prevtime = time;
   }
+  dispNumber(spm, int(spm) != spm);
+  
   prevBtnState = btnState;
-  delay(10);
+  delay(1);
 }
 
 float secTospm(float seconds){

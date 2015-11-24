@@ -82,7 +82,7 @@ void loop()
   // function here (telling it to run). The actual function code
   // is further down in the sketch.
 
-  mainColors();
+  //mainColors();
   
   // The above function turns the individual LEDs full-on and
   // full-off. If you want to generate more than eight colors,
@@ -98,9 +98,9 @@ void loop()
 
   showSpectrum();
   
-  LEDOff();
+  //LEDOff();
   
-  delay(10000);
+  //delay(1000);
 }
 
 
@@ -250,7 +250,7 @@ void showSpectrum()
 
   {
     showRGB(x);  // Call RGBspectrum() with our new x
-    delay(10);   // Delay for 10 ms (1/100th of a second)
+    delay(random(1,50));   // Delay for 10 ms (1/100th of a second)
   }
 }
 

@@ -11,7 +11,6 @@ gripper - open = 10, closed = 180
 
 #include <Servo.h>  // servo library
 
-
 const int NORM_SPD = 15;//speed set() moves at: lower NORM_SPD means faster movement
 const int SLOW_SPD = 35; //speed for spd=0
 const int FAST_SPD = 0;//delay for spd=2
@@ -46,7 +45,6 @@ Servo elbow;
 Servo wrist;
 Servo wrist_rotate;
 Servo gripper;
-
 
 void setup()
 {
@@ -83,7 +81,7 @@ void setup()
 void loop()
 {  
   digitalWrite(indicLED, HIGH);
-  rtnFlyTrap();
+  rtnDrive();
 }
 
 //////////////////////////////////////routines///////////////////////////////////////////

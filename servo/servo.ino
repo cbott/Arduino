@@ -84,7 +84,7 @@ void setup()
   // release the servo (allowing it to be turned by hand),
   // you can call servo1.detach().
 
-  servo1.attach(9);
+  servo1.attach(5);
 }
 
 
