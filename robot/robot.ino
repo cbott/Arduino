@@ -1,4 +1,3 @@
-
 /*
 elbow - up = 15, down = 130
 base - left = 0, right = 180
@@ -12,14 +11,9 @@ gripper - open = 10, closed = 180
 #include <Servo.h>  // servo library
 #include "sn754410.h"
 
-#include "Wire.h"
-#include "WiiChuck.h"
-WiiChuck chuck = WiiChuck();
-
 const int NORM_SPD = 15;//speed set() moves at: lower NORM_SPD means faster movement
 const int SLOW_SPD = 35; //speed for spd=0
 const int FAST_SPD = 0;//delay for spd=2
-
 
 //PWM's : 3, 5, 6, 9, 10, 11
 const int BASE_PWM = 3;
@@ -67,7 +61,7 @@ void setup()
   pinMode(R_DRIVE_2, OUTPUT);
 
   //seed random
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(2));
   
   //enable servos
   base.attach(BASE_PWM);
@@ -76,10 +70,6 @@ void setup()
   gripper.attach(GRIPPER_PWM);
   wrist_rotate.attach(W_ROTATE_PWM);
   wrist.attach(WRIST_PWM);
-  
-  //nunchuck
-  chuck.begin();
-  chuck.update();
   
   //begin serial transmission
   Serial.begin(9600);
@@ -92,56 +82,10 @@ void setup()
 void loop()
 {  
   digitalWrite(indicLED, HIGH);
-  rtnNunchuck();
+  rtnDrive();
 }
 
-//////////////////////////////////////routines///////////////////////////////////////////
-void rtnNunchuck(){
-  delay(20);
-  chuck.update();
-  float y = chuck.readJoyY();
-  float x = chuck.readJoyX();
-  if(abs(y) < 0.1){
-    y=0; 
-  }
-  if(abs(x) < 0.1){
-    x=0; 
-  }
-  /*
-  if(y == 0){
-    drive.set(x,-x);
-  } else {
-    drive.set(y,y); 
-  }
-  */
-  float l=0;
-  float r=0;
-  float div = PI/4;
-  if(x==0 && y!=0){
-    l=y; r=y;
-  } else if (y==0 && x!=0){
-    l=x; r=-x;  
-  } else if (x>0 && y>0) { //quadrant 1
-    l=1; r=atan(y/x)/div-1;
-  } else if (x<0 && y>0) { //quadrant 2
-    l=atan(-y/x)/div-1; r=1;
-  } else if (x<0 && y<0) { //quadrant 3
-    l=-1; r=atan(-y/x)/div+1;
-  } else if (x>0 && y<0) { //quadrant 4
-    l=atan(y/x)/div+1; r=-1;
-  }
-  float dist = sqrt(pow(x,2)+pow(y,2));
-  l = l*dist;
-  r = r*dist;
-  /*
-  Serial.print("L:");
-  Serial.print(l);
-  Serial.print("\tR:");
-  Serial.println(r);
-  */
-  drive.set(l,r);
-}
-
+//////////////////////////////////////routines//////////////////////////////////////////
 void rtnTest(){
   //moves all motors in a pattern
   for(float i=0.2; i<1.0; i+=0.01){
