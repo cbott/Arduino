@@ -1,19 +1,20 @@
+/*
+*
+*Simple send/receive communication with raspberry pi
+*
+*/
+
 #include <Wire.h>
 
 #define SLAVE_ADDRESS 0x04
 
-static const byte DATA_BITS = 4;//bits used as data (8-id bits)
+int RED_PIN = 9;
+int GREEN_PIN = 10;
+int BLUE_PIN = 11;
+int lights[] = {0,0,0};//store rgb value
 
-int RED_PIN = 8;
-int GREEN_PIN = 9;
-int BLUE_PIN = 10;
-boolean lights[] = {0,0,0};//store rgb value
+int number;  //value received
 
-int number;//value received over i2c
-int id;    //first bits in number ( 11110000 )
-int data;  //later bits in number ( 00001111 )
-
-int state = 0;
 void setup() {
     pinMode(RED_PIN, OUTPUT);
     pinMode(GREEN_PIN, OUTPUT);
@@ -35,22 +36,10 @@ void setup() {
  
 void loop() {
   delay(10);
-  if (lights[0]){
-    digitalWrite(RED_PIN, LOW); 
-  }else{
-    digitalWrite(RED_PIN, HIGH); 
-  }
-  if (lights[1]){
-    digitalWrite(GREEN_PIN, LOW);
-  }else{
-    digitalWrite(GREEN_PIN, HIGH);
-  }
-  if (lights[2]){
-    digitalWrite(BLUE_PIN, LOW);
-  }else{
-    digitalWrite(BLUE_PIN, HIGH);
-  }
-    
+  
+  analogWrite(RED_PIN, 255-lights[0]*3); 
+  analogWrite(GREEN_PIN, 255-lights[1]*3);
+  analogWrite(BLUE_PIN, 255-lights[2]*3);    
 }
 
 // callback for received data
@@ -60,21 +49,19 @@ void receiveData(int byteCount){
      }
      
      number = byte(number);
-     id = (number&byte((256-pow(2,DATA_BITS)))) >> DATA_BITS;
-     data = number & byte((pow(2,DATA_BITS)-1));
      Serial.print("data received: ");
-     Serial.print(number);
-     Serial.print("     ID:");
-     Serial.print(id);//read only the first bits(The id)
-     Serial.print("     Data:");
-     Serial.println(data);
+     Serial.println(number);
      
-     if (id == 1){
-       lights[0] = data;  
-     }else if (id == 2){
-       lights[1] = data; 
-     }else if (id == 3){
-       lights[2] = data; 
+     if(number==0){
+       for(int i=0; i<3; i++){
+         lights[i]=0; 
+       }
+     }else if (number <= 85){
+       lights[0] = number;  
+     }else if (number <= 170){
+       lights[1] = number-85; 
+     }else{
+       lights[2] = number-170; 
      }
 }
 

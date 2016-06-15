@@ -11,8 +11,8 @@ static const int BTNPIN = 7;
 static const int SERVOPIN = 8;
 
 //lock password constants
-static const int PASSLEN = 8;
-static const int PASSWORD[] = {1,3,1,3,2,2,4,4};
+static const int PASSLEN = 4;
+static const int PASSWORD[] = {1,1,3,4};
 //   1
 // 4   2
 //   3

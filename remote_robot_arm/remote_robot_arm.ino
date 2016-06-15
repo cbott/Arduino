@@ -1,4 +1,3 @@
-
 /*
 elbow - up = 15, down = 130
 base - left = 0, right = 180
@@ -10,20 +9,10 @@ gripper - open = 10, closed = 180
 
 
 #include <Servo.h>  // servo library
+#include "sn754410.h"
+
 #include <Wire.h>
-
-//Communication setup
 #define SLAVE_ADDRESS 0x04
-static const byte DATA_BITS = 3;//bits used as data (8-id bits)
-boolean commands[32];//make sure this is equal to 2**(8 - DATA_BITS)
-
-int number;//value received over i2c
-int id = 0;    //first bits in number ( 11110000 )
-int data = 0;  //later bits in number ( 00001111 )
-
-const int NORM_SPD = 15;//speed set() moves at: lower NORM_SPD means faster movement
-const int SLOW_SPD = 35; //speed for spd=0
-const int FAST_SPD = 0;//delay for spd=2
 
 
 //PWM's : 3, 5, 6, 9, 10, 11
@@ -33,8 +22,6 @@ const int ELBOW_PWM = 6;
 const int WRIST_PWM = 9;
 const int W_ROTATE_PWM = 10;
 const int GRIPPER_PWM = 11;
-
-const int indicLED = 13;
 
 const int L_DRIVE_1 = 2;
 const int L_DRIVE_2 = 4;
@@ -56,25 +43,17 @@ Servo wrist;
 Servo wrist_rotate;
 Servo gripper;
 
+sn754410 drive(L_DRIVE_1, L_DRIVE_2, R_DRIVE_1, R_DRIVE_2);
 
-void setup(){ 
-  // initialize i2c as slave
-  Wire.begin(SLAVE_ADDRESS);
+int command;
 
-  // define callbacks for i2c communication
-  Wire.onReceive(receiveData);
-  Wire.onRequest(sendData);
-  
+void setup()
+{
   //Set up digital outputs
-  pinMode(indicLED, OUTPUT);
   pinMode(L_DRIVE_1, OUTPUT);
   pinMode(L_DRIVE_2, OUTPUT);
   pinMode(R_DRIVE_1, OUTPUT);
   pinMode(R_DRIVE_2, OUTPUT);
-
-  //seed random
-  randomSeed(analogRead(5));
-  
   //enable servos
   base.attach(BASE_PWM);
   shoulder.attach(SHOULDER_PWM);
@@ -86,170 +65,66 @@ void setup(){
   //begin serial transmission
   Serial.begin(9600);
   
-  //optional
+  Wire.begin(SLAVE_ADDRESS);
+ 
+  // define callbacks for i2c communication
+  Wire.onReceive(receiveData);
+  Wire.onRequest(sendData);
+ 
+  Serial.println("Ready!");
+  
+  command = 0;
+
   Home();
 }
 
-void loop(){  
-  digitalWrite(indicLED, HIGH);
-  
-  commands[id] = data;
-  float spd = 1;
-  
-  //driving//
-  if (commands[1]==1){//forward
-    drive(1,1) ;
-  }else if (commands[1]==2){//backward
-    drive(-1,-1);
-  }else if (commands[1]==3){//left
-    drive(-1,1); 
-  }else if (commands[1]==4){//right
-    drive(1,-1);
-  }else{//stopped
-    drive(0,0); 
-  }
-  //gripper//
-  if(commands[7]==1){
-    Move(gripper, -spd);
-  }
-  if (commands[7]==2){
-    Move(gripper, spd);
-  }
-  //base//
-  if (commands[2]==1){
-    Move(base, spd);
-  }else if (commands[2]==2){
-    Move(base, -spd); 
-  }
-  //shoulder//
-  if (commands[3]==1){
-    Move(shoulder, -spd);  
-  }else if (commands[3]==2){
-    Move(shoulder, spd); 
-  }
-  //elbow//
-  if (commands[4]==1){
-    Move(elbow, -spd);  
-  }else if (commands[4]==2){
-    Move(elbow, spd); 
-  }
-  //wrist//
-  if (commands[5]==1){
-    Move(wrist, spd);  
-  }else if (commands[5]==2){
-    Move(wrist, -spd); 
-  }
-  //wrist rotation//
-  if (commands[6]==1){
-    Move(wrist_rotate, -spd);  
-  }else if (commands[6]==2){
-    Move(wrist_rotate, spd); 
-  }
-  //home position command
-  if (commands[8]==1){
-    Home(); 
-  }
-  delay(10);
-}
 
-// callback for received data
-void receiveData(int byteCount){
-  while(Wire.available()) {
-    number = Wire.read();
+void loop(){
+  switch(command){
+    case 0:
+      drive.set(0,0);
+      break;
+    case 1:
+      drive.set(1,1);
+      break;
+    case 2:
+      drive.set(-1,-1);
+      break;
+    case 3:
+      drive.set(1,-1);
+      break;
+    case 4:
+      drive.set(-1,1);
+      break;
+    case 255:
+      Home();
+      break;
   }
-   
-  number = byte(number);
-  id = (number&byte((256-pow(2,DATA_BITS)))) >> DATA_BITS;//read only the first bits(The id)
-  data = number & byte((pow(2,DATA_BITS)-1));
-  /*
-  Serial.print("data received: ");
-  Serial.print(number);
-  Serial.print("     ID:");
-  Serial.print(id);
-  Serial.print("     Data:");
-  Serial.println(data);
-  */
-}
-
-// callback for sending data
-void sendData(){
-    Wire.write(has_object());
+  
 }
 
 void Home(){
   //set the robot to a resting position
+  drive.set(0,0);
   set(shoulder, 80, 1); 
   set(elbow, 100, 1);
   set(base, 100, 1);
   set(wrist, 10, 1);
   set(wrist_rotate, 90, 1);
-}
-/////////////////////////////////////////////////////////////////////set() function////////////////////////////////////////////////////////////////////////////////
-  // Tell servo to move at a slower speed
-void set(Servo motor, int new_position, int spd){
-  //spd=0,1,2    0=slow   1=normal   2=max
-  int Delay;
-  if (spd==0){
-    Delay=SLOW_SPD; 
-  }else if (spd==2){
-    Delay=FAST_SPD; 
-  }else{
-    Delay=NORM_SPD; 
-  }
-  
-  int current_position = motor.read();
-  if (current_position < new_position){
-    for (current_position; current_position < new_position; current_position++){
-      motor.write(current_position);
-      delay(Delay);
-    }
-  }
-  else if(current_position > new_position){
-    for (current_position; current_position > new_position; current_position--){
-      motor.write(current_position);
-      delay(Delay);
-    } 
-  } 
-}
-///////////////////////////Move funciton. Moves a servo left or right////////////////////
-void Move(Servo motor, int val){
-  int current_position = motor.read();
-  motor.write(constrain(current_position + val, 0.0, 180.0));//limit write values to 0<val<180
-}
-///////////////////////////Drive functions///////////////
-void drive(int left, int right){
-  if( left > 0){
-    digitalWrite(L_DRIVE_1, HIGH);
-    digitalWrite(L_DRIVE_2, LOW);
-  } 
-  else if (left < 0){
-    digitalWrite(L_DRIVE_2, HIGH);
-    digitalWrite(L_DRIVE_1, LOW);
-  }
-  else if (left == 0){
-    digitalWrite(L_DRIVE_2, LOW);
-    digitalWrite(L_DRIVE_1, LOW);
-  }
-  if( right > 0){
-    digitalWrite(R_DRIVE_1, HIGH);
-    digitalWrite(R_DRIVE_2, LOW);
-  } 
-  else if (right < 0){
-    digitalWrite(R_DRIVE_2, HIGH);
-    digitalWrite(R_DRIVE_1, LOW);
-  }
-  else if (right == 0){
-    digitalWrite(R_DRIVE_2, LOW);
-    digitalWrite(R_DRIVE_1, LOW);
-  }
+  //set(gripper, OPEN, 1);
 }
 
-////////////////////////////////gripper pressure sensing///////////////
-boolean has_object(){
-  if (analogRead(PRESSURE_PIN)>50){
-    return true;
-  } else{
-    return false; 
-  }
+// callback for received data
+void receiveData(int byteCount){
+     while(Wire.available()) {
+        command = Wire.read();
+     }
+     command = byte(command);
+     Serial.print("data received: ");
+     Serial.println(command);
 }
 
+// callback for sending data
+void sendData(){
+    Wire.write(command);
+}

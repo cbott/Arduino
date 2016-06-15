@@ -1,3 +1,7 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
+
 const int THRESHHOLD = 60;
 
 const int START_PIN = A0;
@@ -8,16 +12,15 @@ unsigned long endtime = 0;
 bool timing = false;
 
 void setup() {
-  Serial.begin(9600);
+  //Serial.begin(9600);
+  lcd.begin(20, 4);
+  lcd.setCursor(0,0);
+  lcd.print("Timer");
 }
 
 void loop() {
   int read1 = analogRead(START_PIN);
   int read2 = analogRead(END_PIN);
-  /*
-  for(int i=0; i < val - 30; i++){
-    Serial.print("|");
-  }*/
   /*
   Serial.print("Detector 1: ");
   Serial.print(read1);
@@ -27,18 +30,30 @@ void loop() {
   
   if(read1 < THRESHHOLD && !timing){
     starttime = millis();
-    Serial.println("Starting!!!");
+    //Serial.println("Starting!!!");
+    lcd.setCursor(0,0);
+    lcd.print("Timing...    ");
+    lcd.setCursor(0,2);
+    lcd.print("                    ");
     timing = true;
   }
   else if(read2 < THRESHHOLD && timing){
     endtime = millis();
-    Serial.print("FINISH: ");
-    Serial.print(endtime - starttime);
-    Serial.println("ms");
+    //Serial.print("FINISH: ");
+    lcd.setCursor(0,0);
+    lcd.print("Timer Stopped");
+    //Serial.print(endtime - starttime);
+    //Serial.println("ms");
     timing = false;
   }
-  if(timing)
-    Serial.println(millis()-starttime);
-  
+  if(timing){
+    //Serial.println(millis()-starttime);
+    lcd.setCursor(0,1);
+    lcd.print("Elased time(ms):");
+    lcd.setCursor(0,2);
+    lcd.print(millis()-starttime);
+  }
+  lcd.setCursor(0,3);
+  lcd.print(read2);
   delay(5);
 }
