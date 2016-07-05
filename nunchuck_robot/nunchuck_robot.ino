@@ -18,12 +18,13 @@ void setup(){
   robot.begin();
   Serial.begin(9600);
   robot.openGripper();
+  set_home_values();
 }
 
 void set_home_values(){
   //postition values
-  robotx = 2.7; roboty = 13.5; robotz = 10;
-  robotw = 90; robotwr = 100;
+  robotx = 0; roboty = 13.5; robotz = 10;
+  robotw = 90; robotwr = 90;
 }
 
 void loop(){
@@ -66,7 +67,7 @@ void loop(){
         robot.openGripper(); 
       }
     }
-  } 
+  }
   //Tilted Down Controls
   else {
     if(c && z){
@@ -92,10 +93,13 @@ void loop(){
       }
     }  
   }
+
   //Serial.println(robot.getPressure());
-  bool set = robot.moveTo(robotx,roboty,robotz,robotwr,robotw);
+
+  bool set = robot.moveTo(robotx,roboty,robotz,robotw,robotwr);
   if(!set)
     Serial.println("No solution found");
+  
 }
 
 void printPos(){
@@ -106,15 +110,14 @@ void printPos(){
   Serial.print("    Z:  ");
   Serial.println(robotz);
 }
+
 /*
 void loop(){
-  robot.moveTo(8,15,-2.5,90,180);
+  robot.moveTo(8,15,0,90,180);
   robot.closeGripper();
   delay(1000);
-  robot.moveTo(0,12,12,270,90,10);
-  robot.moveTo(-8,15,0,90,0);
+  robot.moveTo(-8,15,4,90,90,25);
   robot.openGripper();
   delay(1000);
-  robot.moveTo(0,12,12,270,90,10);
 }
 */
