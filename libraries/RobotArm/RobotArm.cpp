@@ -58,8 +58,13 @@ boolean RobotBase::moveTo(float x, float y, float z, float w, float wr, float cm
 
   float dist = sqrt(dx*dx+dy*dy+dz*dz); //distance from current position to new position
   float t = dist / cms; //time it should take to reach the new coordinate
-  float inc = t / wait * 1000; // the number of increments with delay time wait needed to take time t
-  for(int i=1; i<=inc; i++){
+  int inc =  t / wait * 1000 + 0.99; // the number of increments with delay time wait needed to take time t
+  
+  if(inc == 0  && (dwr || dw)){
+    inc = 1; //if the position is unchanged, but the wrist angles change, use 1 loop to set them
+  }
+  for(int j=1; j<=inc; j++){
+    float i = j; //allows intermediate steps so that (i/inc) != 1 or 0 only
     if(!set(startx+dx*(i/inc),
         starty+dy*(i/inc),
         startz+dz*(i/inc),
@@ -110,7 +115,7 @@ void RobotBase::arcadeDrive(float forward, float turn){
   drive.set(leftOutput, rightOutput);
 }
 void RobotBase::home(){
-  set(2.7,13.5,10,90,100);
+  set(0,13.5,10,90,90);
 }
 float RobotBase::getX(){
   return robotx;
