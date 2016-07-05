@@ -33,8 +33,9 @@ boolean RobotBase::set(float x, float y, float z, float wrist_angle, float wrist
       int elbow_a = acos(val_acos_e) * 180.0 / PI;
       int shoulder_a = (atan2(z, r) + acos(val_acos_s)) * 180.0 / PI;
       int base_a = (PI-atan2(y,x)) * 180.0 / PI;
-      int wrist_a = wrist_angle + 90 - shoulder_a - elbow_a;
-      int wrist_rotate_a = 90 - base_a + wrist_rotate_angle;
+      int wrist_a = wrist_angle + 90 - shoulder_a - elbow_a; //maintain a constant angle between the gripper and the ground
+      int wrist_rotate_a = sin(wrist_angle*PI/180.0)*(90 - base_a) + wrist_rotate_angle; //maintain angle between frame and gripper when base rotates
+        //sin() reduces the angle compensation when the wrist is tilted up, so it can mantian its angle with respect to the ground
       
       base.write(base_a);
       shoulder.write(180-shoulder_a);
