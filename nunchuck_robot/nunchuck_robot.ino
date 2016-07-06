@@ -26,7 +26,7 @@ void set_home_values(){
   robotx = 0; roboty = 13.5; robotz = 10;
   robotw = 90; robotwr = 90;
 }
-
+/*
 void loop(){
   delay(20);
   chuck.update();
@@ -110,14 +110,23 @@ void printPos(){
   Serial.print("    Z:  ");
   Serial.println(robotz);
 }
-
-/*
-void loop(){
-  robot.moveTo(8,15,0,90,180);
-  robot.closeGripper();
-  delay(1000);
-  robot.moveTo(-8,15,4,90,90,25);
-  robot.openGripper();
-  delay(1000);
-}
 */
+int pennies = 0;
+void loop(){
+  delay(2000);
+  robot.moveTo(5,20,5,90,90);
+  robot.moveTo(5,20,-2,90,90);
+  delay(250);
+  robot.setGripper(120);
+  delay(500);
+  robot.moveTo(5,20,5,90,90);
+  delay(250);
+  robot.moveTo(-5,13,pennies/6.0,90,90);
+  robot.moveTo(-5,13,pennies/6.0-2.9,90,90,2);
+  delay(250);
+  robot.openGripper();
+  delay(500);
+  set_home_values();
+  robot.moveTo(robotx,roboty,robotz,robotw,robotwr,10);
+  pennies++;
+}
