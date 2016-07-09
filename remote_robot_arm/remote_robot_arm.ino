@@ -23,31 +23,28 @@ void setup()
   
   command = 0;
 
+  robot.begin();
   robot.home();
 }
 
 
 void loop(){
-  switch(command){
-    case 0:
-      robot.tankDrive(0,0);
-      break;
-    case 1:
-      robot.tankDrive(1,1);
-      break;
-    case 2:
-      robot.tankDrive(-1,-1);
-      break;
-    case 3:
-      robot.tankDrive(1,-1);
-      break;
-    case 4:
-      robot.tankDrive(-1,1);
-      break;
-    case 255:
-      robot.home();
-      break;
+  if(command == 0){
+    robot.tankDrive(0,0);
+  } else if(command == 1){
+    robot.tankDrive(1,1);
+  } else if(command == 2){
+    robot.tankDrive(-1,-1);
+  } else if(command == 3){
+    robot.tankDrive(-1,1);
+  } else if(command == 4){
+    robot.tankDrive(1,-1);
+  } else if(command >= 15 && command <= 170){
+    robot.setGripper(command); 
+  }else if(command == 255){
+    robot.home();
   }
+  delay(1);
   
 }
 
