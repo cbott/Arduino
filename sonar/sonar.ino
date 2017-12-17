@@ -46,18 +46,6 @@ void loop() {
     Serial.println(reading);   // print the reading
   }
 
-/*  
-  // print out the decimal result
-  Serial.print(inches,DEC);
-  
-  // print out a graphic representation of the result
-  Serial.print(" ");
-  for (x=0;x<(inches/5);x++)
-  {
-    Serial.print(".");
-  }
-  Serial.println("|");
-*/
 
   lcd.setCursor(0,0);
   lcd.print("    ");
