@@ -16,13 +16,23 @@ void sn754410::set(float left, float right){
   float rightmap = 255.0 * abs(constrain(right, -1, 1));
   if(left > 0){
      analogWrite(_m1a, leftmap);
+     digitalWrite(_m1b, LOW);
   } else if (left < 0){
+     digitalWrite(_m1a, LOW);
      analogWrite(_m1b, leftmap);
+  } else {
+     digitalWrite(_m1a, LOW);
+     digitalWrite(_m1b, LOW);
   }
   if(right > 0){
      analogWrite(_m2a, rightmap);
+     digitalWrite(_m2b, LOW);
   } else if (right < 0){
+     digitalWrite(_m2a, LOW);
      analogWrite(_m2b, rightmap);
+  } else {
+     digitalWrite(_m2a, LOW);
+     digitalWrite(_m2b, LOW);
   }
 }
 

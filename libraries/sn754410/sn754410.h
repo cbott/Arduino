@@ -18,7 +18,7 @@
 #define sn754410_h
 
 #include "Arduino.h"
-class sn754410{
+class sn754410 {
   public:
     sn754410(int m1a, int m1b, int m2a, int m2b);
     void set(float left, float right);
